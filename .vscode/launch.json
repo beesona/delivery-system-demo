@@ -1,0 +1,66 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Docker: Server",
+      "port": 9229,
+      "address": "localhost",
+      "remoteRoot": "/",
+      "localRoot": "${workspaceFolder}/server"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Server",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/server/src/index.ts",
+      "outFiles": ["${workspaceFolder}/**/*.js"],
+      "env": {
+        "NODE_ENV": "not_dev"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Server- SQL SYNC",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/server/src/index.ts",
+      "outFiles": ["${workspaceFolder}/**/*.js"],
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "SQL Testing",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/server/src/2/index.ts",
+      "outFiles": ["${workspaceFolder}/**/*.js"],
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Kafka Consumer",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/kafka-consumer/src/index.ts",
+      "outFiles": ["${workspaceFolder}/**/*.js"],
+      "env": {
+        "NODE_ENV": "development",
+        "CLIENT_ID": "delivery-change-client",
+        "KAFKA_GROUP_ID": "delivery-group",
+        "KAFKA_BROKER_1": "localhost:9092",
+        "KAFKA_BROKER_2": "localhost:9093",
+        "KAFKA_BROKER_3": "localhost:9094"
+      }
+    }
+  ]
+}

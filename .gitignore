@@ -1,0 +1,7 @@
+client/node_modules
+client/.vscode
+client/dist
+kafka-consumer/dist
+kafka-consumer/node_modules
+server/dist
+server/node_modules
