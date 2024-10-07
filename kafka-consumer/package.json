@@ -1,0 +1,21 @@
+{
+  "name": "kafka-consumer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.7.4",
+    "@types/redis": "^4.0.11",
+    "mocha": "^10.7.3"
+  },
+  "dependencies": {
+    "kafkajs": "^2.2.4",
+    "redis": "^4.7.0"
+  }
+}
