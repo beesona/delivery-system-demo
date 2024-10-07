@@ -1,5 +1,7 @@
 # Delivery System Manager
 
+![Delivery Flow](delivery-flow.png)
+
 ## Introduction
 
 This is a demo that has several applications orchestrated to work as a whole. Conceptually, Deliveries are created using a web app and saved to a Postgres DB. A Debezium connector running with Confluent Kafka then captures the data changes and sends them to Kafka topics in a Kafka cluster. A consumer is listening to some of these topics and adding Delivery objects to a Redis Cache. So the App breakdown is as follows:
