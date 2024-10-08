@@ -31,7 +31,15 @@ class RedisService {
   }
 
   async get(key: string) {
-    return await this.client.get(key);
+    let response;
+    response = await this.client.hGetAll(key);
+    return response;
+  }
+
+  async getHashField(key: string, field: string) {
+    let response;
+    response = await this.client.hGet(key, field);
+    return response;
   }
 
   async disconnect() {
