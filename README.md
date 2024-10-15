@@ -56,9 +56,17 @@ Once the compose has been `upped`, We need to POST to the connector endpoint to 
   }
 ```
 
-### ksqlDB Examples
+### ElasticSearch
 
-Creating a stream allows us to run ksql on topics.
+1. Create an Index called `fulldelivery` in Kibana.
+2. navigate to `http://localhost:5601/`.
+3. Select Search > Indices.
+4. Click Create a new index button.
+5. Use the name `fulldelivery` and click `Create index`.
+
+### ksqlDB Streams and Materialized Views
+
+1. Creating the streams allows us to run ksql on topics.
 
 ```
   -- Creating the deliveries stream;
@@ -117,7 +125,7 @@ Creating a stream allows us to run ksql on topics.
     WITH (kafka_topic='delivery_details', value_format='json');
 ```
 
-Creating a table (AKA Materialized View) Allows us to view data (and join streams) in dynamic ways.
+2. Creating a table (AKA Materialized View) Allows us to view data (and join streams) in dynamic ways and sends this view of the data to the final topic.
 
 ```
 -- create a table that joins the deliveries, delivery_details, and orders streams;
