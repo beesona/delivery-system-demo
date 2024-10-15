@@ -40,8 +40,33 @@ app.post('/users', async (req, res) => {
   }
 });
 
+app.get('/batch/:count', async (req, res) => {
+  try {
+    for (let i = 0; i < +req.params.count; i++) {
+      const deliveryResult = await deliveryService.createDelivery(createRandomDelivery());
+      console.log(deliveryResult?.id);
+    }
+    res.status(201).json('ok');
+  } catch (error) {
+    res.status(500).send();
+  }
+});
+
+app.get('/delivery/search', async (req, res) => {
+  try {
+    const deliveries = await deliveryService.searchDeliveries({});
+    res.json(deliveries);
+  } catch (error) {
+    res.status(500).send();
+  }
+});
+
 app.get('/test-delivery', async (req, res) => {
   try {
+    // for (let i = 0; i < 10000; i++) {
+    //   const deliveryResult = await deliveryService.createDelivery(createRandomDelivery());
+    //   console.log(deliveryResult?.id);
+    // }
     const deliveryResult = await deliveryService.createDelivery(createRandomDelivery());
     res.status(201).json(deliveryResult);
   } catch (error) {

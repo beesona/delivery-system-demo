@@ -1,4 +1,5 @@
 import { createClient } from 'redis';
+import { DebeziumData } from './types';
 
 class RedisService {
   static #instance: RedisService;
@@ -28,6 +29,20 @@ class RedisService {
 
   async set(key: string, field: string, value: string) {
     await this.client.hSet(key, field, value);
+  }
+
+  async setHashMap(key: string, value: DebeziumData) {
+    for (const [objKey, keyValue] of Object.entries(value)) {
+      await this.client.hSet(key, objKey, keyValue);
+    }
+  }
+
+  async indexField(key: string, field: string, value: string, keyPrefix = '') {
+    try {
+      await this.client.set(`${field}:${value}`, `${keyPrefix}_${key}`);
+    } catch (error) {
+      console.log(`Error indexing field: ${field}:${value} for key: ${key}`);
+    }
   }
 
   async get(key: string) {

@@ -54,10 +54,109 @@ Once the compose has been `upped`, We need to POST to the connector endpoint to 
   }
 ```
 
+### ksqlDB Examples
+
+Creating a stream allows us to run ksql on topics.
+
+```
+  -- Creating the deliveries stream;
+    CREATE STREAM deliveries (
+      id BIGINT,
+      delivery_type VARCHAR,
+      notes VARCHAR,
+      status VARCHAR,
+      dispatch_at VARCHAR,
+      created_at VARCHAR,
+      updated_at VARCHAR,
+      mileage INT,
+      order_id BIGINT,
+      tx_id BIGINT,
+      op VARCHAR)
+    WITH (kafka_topic='deliveries', value_format='json');
+```
+
+```
+  -- Creating the orders stream;
+  CREATE STREAM orders (
+    id BIGINT,
+    organization_id BIGINT,
+    created_at VARCHAR,
+    updated_at VARCHAR,
+    tx_id BIGINT,
+    op VARCHAR)
+  WITH (kafka_topic='orders', value_format='json');
+```
+
+```
+  -- Creating the deliveryDetails stream;
+  CREATE STREAM deliveryDetails (
+    id BIGINT,
+    from_instructions VARCHAR,
+    from_contact_name VARCHAR,
+    to_instructions VARCHAR,
+    to_contact_name VARCHAR,
+    from_address VARCHAR,
+    from_city VARCHAR,
+    from_state VARCHAR,
+    from_zip VARCHAR,
+    from_country VARCHAR,
+    from_phone_number VARCHAR,
+    to_address VARCHAR,
+    to_city VARCHAR,
+    to_state VARCHAR,
+    to_zip VARCHAR,
+    to_country VARCHAR,
+    to_phone_number VARCHAR,
+    created_at VARCHAR,
+    updated_at VARCHAR,
+    delivery_id BIGINT,
+    tx_id BIGINT,
+    op VARCHAR)
+    WITH (kafka_topic='delivery_details', value_format='json');
+```
+
+Creating a table (AKA Materialized View) Allows us to view data (and join streams) in dynamic ways.
+
+```
+  -- create a table that joins the deliveries, delivery_details, and orders streams;
+  CREATE TABLE fullDelivery AS
+  SELECT deliveries.id,
+    LATEST_BY_OFFSET(deliveries.delivery_type) AS delivery_type,
+    LATEST_BY_OFFSET(deliveries.notes) AS notes,
+    LATEST_BY_OFFSET(deliveries.status) AS status,
+    LATEST_BY_OFFSET(deliveries.dispatch_at) AS dispatch_at,
+    LATEST_BY_OFFSET(deliveries.created_at) AS created_at,
+    LATEST_BY_OFFSET(deliveries.updated_at) AS updated_at,
+    LATEST_BY_OFFSET(deliveries.mileage) AS mileage,
+    LATEST_BY_OFFSET(deliveries.order_id) AS order_id,
+    LATEST_BY_OFFSET(orders.organization_id) AS organization_id,
+    LATEST_BY_OFFSET(deliveryDetails.from_instructions) AS from_instructions,
+    LATEST_BY_OFFSET(deliveryDetails.from_contact_name) AS from_contact_name,
+    LATEST_BY_OFFSET(deliveryDetails.to_instructions) AS to_instructions,
+    LATEST_BY_OFFSET(deliveryDetails.to_contact_name) AS to_contact_name,
+    LATEST_BY_OFFSET(deliveryDetails.from_address) AS from_address,
+    LATEST_BY_OFFSET(deliveryDetails.from_city) AS from_city,
+    LATEST_BY_OFFSET(deliveryDetails.from_state) AS from_state,
+    LATEST_BY_OFFSET(deliveryDetails.from_zip) AS from_zip,
+    LATEST_BY_OFFSET(deliveryDetails.from_country) AS from_country,
+    LATEST_BY_OFFSET(deliveryDetails.from_phone_number) AS from_phone_number,
+    LATEST_BY_OFFSET(deliveryDetails.to_address) AS to_address,
+    LATEST_BY_OFFSET(deliveryDetails.to_city) AS to_city,
+    LATEST_BY_OFFSET(deliveryDetails.to_state) AS to_state,
+    LATEST_BY_OFFSET(deliveryDetails.to_zip) AS to_zip,
+    LATEST_BY_OFFSET(deliveryDetails.to_country) AS to_country,
+    LATEST_BY_OFFSET(deliveryDetails.to_phone_number) AS to_phone_number
+  FROM deliveries
+    INNER JOIN orders WITHIN 2 HOURS ON deliveries.order_id = orders.id
+    INNER JOIN deliveryDetails WITHIN 2 HOURS ON deliveries.id = deliveryDetails.delivery_id
+  GROUP BY deliveries.id
+  EMIT CHANGES;
+```
+
 ### Known Issues
 
 - The Kafka Consumer currently has issues running in a container, so I've been running it locally. Working on fixing this.
-- The FK back to the `deliveries` table for the example `delivery_details` table is being set to `delivery_details_id`.
+- The default API key for ElasticSearch does not work out of the box as expected. The current workaround is to log into Kibana (`http://localhost:5601`). login credentials are in the .ENV file), search for API Keys at the top, add a manual one (default all options), copy it and replace the existing value in the `./kafka-consumer/src/elasticsearch-service.ts` file with the new one before running the consumer.
 
 ### Suggested Reading and reference material
 

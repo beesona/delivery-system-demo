@@ -91,4 +91,8 @@ class DatabaseService {
   }
 }
 
-export { DatabaseService };
+const replaceSnakeCaseWithCamelCase = (input: string) => {
+  return input.replace(/(_\w)/g, (match) => match[1].toUpperCase());
+};
+
+export { DatabaseService, replaceSnakeCaseWithCamelCase };

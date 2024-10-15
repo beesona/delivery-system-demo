@@ -49,14 +49,31 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Kafka Consumer",
+      "name": "Consumer- ETL",
       "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/kafka-consumer/src/index.ts",
+      "program": "${workspaceFolder}/kafka-consumer/src/consumers/debezium-consumer.ts",
       "outFiles": ["${workspaceFolder}/**/*.js"],
       "env": {
         "NODE_ENV": "development",
         "CLIENT_ID": "delivery-change-client",
         "KAFKA_GROUP_ID": "delivery-group",
+        "KAFKA_BROKER_1": "localhost:9092",
+        "KAFKA_BROKER_2": "localhost:9093",
+        "KAFKA_BROKER_3": "localhost:9094",
+        "KAFKAJS_NO_PARTITIONER_WARNING": "1"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Consumer- Sink",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/kafka-consumer/src/consumers/elastisearch-sink.ts",
+      "outFiles": ["${workspaceFolder}/**/*.js"],
+      "env": {
+        "NODE_ENV": "development",
+        "CLIENT_ID": "delivery-sink-client",
+        "KAFKA_GROUP_ID": "delivery-sink-group",
         "KAFKA_BROKER_1": "localhost:9092",
         "KAFKA_BROKER_2": "localhost:9093",
         "KAFKA_BROKER_3": "localhost:9094"
