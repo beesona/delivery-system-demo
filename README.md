@@ -4,13 +4,15 @@
 
 ## Introduction
 
-This is a demo that has several applications orchestrated to work as a whole. Conceptually, Deliveries are created using a web app and saved to a Postgres DB. A Debezium connector running with Confluent Kafka then captures the data changes and sends them to Kafka topics in a Kafka cluster. A consumer is listening to some of these topics and adding Delivery objects to a Redis Cache. So the App breakdown is as follows:
+This is a demo that has several applications orchestrated to work as a whole. Conceptually, Deliveries are created using a web app and saved to a Postgres DB. A Debezium connector running with Confluent Kafka then captures the data changes and sends them to Kafka topics in a Kafka cluster. A consumer is listening to some of these topics and ETLing them into a "clean" delivery representation. A ksqlDB materialized view then "flattens" these representations into a final Delivery object, which is sent to a topic and a final consumer sends this object to ElasticSearch. So the App breakdown is as follows:
 
 - Web Client Application (Angular) - Not yet implemented.
 - Web Service Application (Node Express) - Some general endpoints for getting and setting delivery data using the Sequelize ORM for Node.
 - Kafka Cluster - 3 nodes using the confluent cloud kafka image
 - Kafka Debezium CDC Connector- See the Confluent Connector notes for implementation details.
-- Kafka Stream Consumer - Node app listening for new messages and caching the data in Redis.
+- Kafka Stream Consumer (ETL) - Node app listening for new messages and putting them in "clean" topics.
+- Kafka kSQLDB Materialized View - combines multiple topic streams into a final delivery topic.
+- Kafka Stream Consumer (ElasticSearch Sink) - gets this final delivery and upserts it into ElasticSearch, ensuring any creates or updates only result in a single document in the deliveries index in ElasticSearch.
 
 ## Getting Started.
 
