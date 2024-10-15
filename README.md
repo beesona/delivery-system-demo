@@ -120,9 +120,10 @@ Creating a stream allows us to run ksql on topics.
 Creating a table (AKA Materialized View) Allows us to view data (and join streams) in dynamic ways.
 
 ```
-  -- create a table that joins the deliveries, delivery_details, and orders streams;
+-- create a table that joins the deliveries, delivery_details, and orders streams;
   CREATE TABLE fullDelivery AS
   SELECT deliveries.id,
+    LATEST_BY_OFFSET(deliveries.id) AS delivery_id,
     LATEST_BY_OFFSET(deliveries.delivery_type) AS delivery_type,
     LATEST_BY_OFFSET(deliveries.notes) AS notes,
     LATEST_BY_OFFSET(deliveries.status) AS status,
