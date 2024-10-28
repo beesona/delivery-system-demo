@@ -4,18 +4,23 @@ import { convertData } from '../services/data-service';
 import { Delivery, DeliveryAttempt, DeliveryDetails, DeliveryStateChange, Order } from '../types';
 import { ElasticsearchService } from '../services/elasticsearch-service';
 
+// This consumer listen to changes to topics created by debezium and selectively forwards them to the appropriate topic.
+// It really is just cleaning out some of the debezium metadata we won't need.
+
 const deliveryTopics = [
   'data.public.deliveries',
   'data.public.delivery_attempts',
   'data.public.delivery_details',
   'data.public.orders'
 ];
-
 const brokers = [
   process.env.KAFKA_BROKER_1 || 'localhost:9092',
   process.env.KAFKA_BROKER_2 || 'localhost:9093',
   process.env.KAFKA_BROKER_3 || 'localhost:9094'
 ];
+console.log('==============================================');
+console.log(brokers);
+console.log('==============================================');
 const kafka = new Kafka({
   clientId: process.env.CLIENT_ID || 'delivery-change-client',
   brokers

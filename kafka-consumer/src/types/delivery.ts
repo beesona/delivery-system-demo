@@ -49,4 +49,42 @@ interface Order extends DebeziumData {
   organization_id: number;
 }
 
-export { DebeziumData, Delivery, DeliveryDetails, DeliveryAttempt, DeliveryStateChange, Order };
+interface FullDelivery {
+  DELIVERY_ID: number;
+  DELIVERY_TYPE: string;
+  NOTES: string;
+  STATUS: string;
+  DISPATCH_AT: string;
+  CREATED_AT: string;
+  UPDATED_AT: string;
+  MILEAGE: number;
+  ORDER_ID?: number;
+  ORGANIZATION_ID: number;
+  FROM_INSTRUCTIONS: string;
+  FROM_CONTACT_NAME: string;
+  TO_INSTRUCTIONS: string;
+  TO_CONTACT_NAME: string;
+  FROM_ADDRESS: string;
+  FROM_CITY: string;
+  FROM_STATE: string;
+  FROM_ZIP: string;
+  FROM_COUNTRY: string;
+  FROM_PHONE_NUMBER: string;
+  TO_ADDRESS: string;
+  TO_CITY: string;
+  TO_STATE: string;
+  TO_ZIP: string;
+  TO_COUNTRY: string;
+  TO_PHONE_NUMBER: string;
+  LATEST_DELIVERY_ATTEMPT?: DeliveryAttempt;
+}
+
+export {
+  DebeziumData,
+  Delivery,
+  DeliveryDetails,
+  DeliveryAttempt,
+  DeliveryStateChange,
+  Order,
+  FullDelivery
+};

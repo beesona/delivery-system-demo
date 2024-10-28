@@ -4,7 +4,16 @@ import {
   DeliveryDetails,
   DeliveryAttempt,
   DeliveryStateChange,
-  Order
+  Order,
+  FullDelivery
 } from './delivery';
 
-export { DebeziumData, Delivery, DeliveryDetails, DeliveryAttempt, DeliveryStateChange, Order };
+export {
+  DebeziumData,
+  Delivery,
+  DeliveryDetails,
+  DeliveryAttempt,
+  DeliveryStateChange,
+  Order,
+  FullDelivery
+};

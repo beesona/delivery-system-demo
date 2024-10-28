@@ -66,6 +66,10 @@ Once the compose has been `upped`, We need to POST to the connector endpoint to 
 
 ### ksqlDB Streams and Materialized Views
 
+To create streams and views for the topics, first log into the CLI via the container running it.
+
+- `docker exec -it ksqldb-cli ksql http://ksqldb-server:8088`
+
 1. Creating the streams allows us to run ksql on topics.
 
 ```

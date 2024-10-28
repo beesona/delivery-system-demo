@@ -1,36 +1,10 @@
 import { Kafka } from 'kafkajs';
 import { ElasticsearchService } from '../services/elasticsearch-service';
+import { FullDelivery, DeliveryAttempt } from '../types';
 
-interface FullDelivery {
-  DELIVERY_ID: number;
-  DELIVERY_TYPE: string;
-  NOTES: string;
-  STATUS: string;
-  DISPATCH_AT: string;
-  CREATED_AT: string;
-  UPDATED_AT: string;
-  MILEAGE: number;
-  ORDER_ID: number;
-  ORGANIZATION_ID: number;
-  FROM_INSTRUCTIONS: string;
-  FROM_CONTACT_NAME: string;
-  TO_INSTRUCTIONS: string;
-  TO_CONTACT_NAME: string;
-  FROM_ADDRESS: string;
-  FROM_CITY: string;
-  FROM_STATE: string;
-  FROM_ZIP: string;
-  FROM_COUNTRY: string;
-  FROM_PHONE_NUMBER: string;
-  TO_ADDRESS: string;
-  TO_CITY: string;
-  TO_STATE: string;
-  TO_ZIP: string;
-  TO_COUNTRY: string;
-  TO_PHONE_NUMBER: string;
-}
-
-const deliveryTopics = ['FULLDELIVERY'];
+// This consumer listens to the FUlLDELIVERY topic and indexes the data in Elasticsearch.
+// FULLDELIVERY is derived from a kafka table called fullDelivery, and it combines data from multiple tables.
+const deliveryTopics = ['FULLDELIVERY', 'delivery_attempts'];
 
 const brokers = [
   process.env.KAFKA_BROKER_1 || 'localhost:9092',
@@ -61,16 +35,28 @@ const run = async () => {
 run().catch(console.error);
 
 const processMessage = async (topic: string, message: string) => {
-  let data = JSON.parse(message) as FullDelivery;
-  if (data.DELIVERY_ID) {
-    try {
-      console.log('Indexing:', topic, data.DELIVERY_ID);
-      await elastic.updateDocument('fulldelivery', data.DELIVERY_ID.toString(), {
-        doc: data,
-        doc_as_upsert: true
+  switch (topic) {
+    case 'FULLDELIVERY':
+      let data = JSON.parse(message) as FullDelivery;
+      if (data.DELIVERY_ID) {
+        try {
+          console.log('Indexing:', topic, data.DELIVERY_ID);
+          await elastic.updateDocument('fulldelivery', data.DELIVERY_ID.toString(), {
+            doc: data,
+            doc_as_upsert: true
+          });
+        } catch (ex) {
+          console.log(ex);
+        }
+      }
+    case 'delivery_attempts':
+      // serialize the attempt and try to add it to the delivery.
+      let attemptData = JSON.parse(message) as DeliveryAttempt;
+      await elastic.updateDocument('fulldelivery', attemptData.delivery_id.toString(), {
+        doc: { LATEST_DELIVERY_ATTEMPT: attemptData }
       });
-    } catch (ex) {
-      console.log(ex);
-    }
+      break;
+    default:
+      console.log('Unknown topic:', topic);
   }
 };
