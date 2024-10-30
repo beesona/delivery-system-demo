@@ -6,3 +6,4 @@ kafka-consumer/dist
 kafka-consumer/node_modules
 server/dist
 server/node_modules
+./.vscode

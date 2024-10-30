@@ -1,25 +1,31 @@
 import express from 'express';
 import { User } from './models/user';
-import { DatabaseService } from './services/database-service';
-import { UserResponse, UserService } from './services/user-service';
+import { UserService } from './services/user-service';
 import { RedisService } from './services/redis-service';
 import { DeliveryService } from './services/delivery-service';
-import {
-  DeliveryAttemptData,
-  DeliveryData,
-  DeliveryDetailsData,
-  DeliveryStatus
-} from './types/delivery-types';
+import { DeliveryStatus } from './types/delivery-types';
 import { createRandomDelivery } from './services/dev-helper';
+import {
+  eventServiceFactory,
+  EventServiceTypes
+} from './services/events/event-service';
 
 const PORT: number = parseInt(process.env.PORT || '8080');
 const app = express();
 const userService = new UserService();
-const deliveryService = new DeliveryService();
+if (!process.env.EVENT_SERVICE_TYPE) {
+  throw new Error('EVENT_SERVICE_TYPE is required as an environment variable');
+}
+const eventService = eventServiceFactory(
+  process.env.EVENT_SERVICE_TYPE as EventServiceTypes
+);
+const deliveryService = new DeliveryService(eventService);
 
 app.use(express.json());
 app.get('/users', async (req, res) => {
-  const users = await User.findAll({ attributes: ['userName', 'email', 'name'] });
+  const users = await User.findAll({
+    attributes: ['userName', 'email', 'name']
+  });
   res.json(users);
 });
 app.get('/users/:userName', async (req, res) => {
@@ -43,7 +49,9 @@ app.post('/users', async (req, res) => {
 app.get('/batch/:count', async (req, res) => {
   try {
     for (let i = 0; i < +req.params.count; i++) {
-      const deliveryResult = await deliveryService.createDelivery(createRandomDelivery());
+      const deliveryResult = await deliveryService.createDelivery(
+        createRandomDelivery()
+      );
       console.log(deliveryResult?.id);
     }
     res.status(201).json('ok');
@@ -67,7 +75,9 @@ app.get('/test-delivery', async (req, res) => {
     //   const deliveryResult = await deliveryService.createDelivery(createRandomDelivery());
     //   console.log(deliveryResult?.id);
     // }
-    const deliveryResult = await deliveryService.createDelivery(createRandomDelivery());
+    const deliveryResult = await deliveryService.createDelivery(
+      createRandomDelivery()
+    );
     res.status(201).json(deliveryResult);
   } catch (error) {
     res.status(500).send();
@@ -76,7 +86,9 @@ app.get('/test-delivery', async (req, res) => {
 
 app.get('/delivery/:deliveryId', async (req, res) => {
   try {
-    const delivery = await deliveryService.GetDelivery(parseInt(req.params.deliveryId));
+    const delivery = await deliveryService.GetDelivery(
+      parseInt(req.params.deliveryId)
+    );
     return delivery ? res.json(delivery) : res.status(404).send();
   } catch (error) {
     res.status(500).send();
@@ -100,7 +112,10 @@ app.get('/delivery/state-change/:deliveryId', async (req, res) => {
   try {
     const deliveryId = parseInt(req.params.deliveryId);
     const status = DeliveryStatus.delivered;
-    const stateChange = await deliveryService.createNewDeliveryStateChange(deliveryId, status);
+    const stateChange = await deliveryService.createNewDeliveryStateChange(
+      deliveryId,
+      status
+    );
     res.status(201).json(stateChange);
   } catch (error) {
     res.status(500).send();

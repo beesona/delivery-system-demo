@@ -21,7 +21,12 @@
       "program": "${workspaceFolder}/server/src/index.ts",
       "outFiles": ["${workspaceFolder}/**/*.js"],
       "env": {
-        "NODE_ENV": "not_dev"
+        "NODE_ENV": "not_dev",
+        "EVENT_SERVICE_TYPE": "kafka",
+        "KAFKA_CLIENT_ID": "delivery-change-producer",
+        "KAFKA_BROKER_1": "localhost:9092",
+        "KAFKA_BROKER_2": "localhost:9093",
+        "KAFKA_BROKER_3": "localhost:9094"
       }
     },
     {

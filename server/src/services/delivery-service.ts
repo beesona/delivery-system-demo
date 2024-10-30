@@ -1,4 +1,9 @@
-import { DeliveryAttempt, DeliveryDetails, DeliveryStateChange, Order } from '../models';
+import {
+  DeliveryAttempt,
+  DeliveryDetails,
+  DeliveryStateChange,
+  Order
+} from '../models';
 import { Delivery } from '../models/delivery';
 import { DbDelivery, DbDeliveryDetails, DbOrder } from '../types/db-types';
 import {
@@ -9,13 +14,16 @@ import {
   OrderData
 } from '../types/delivery-types';
 import { ElasticsearchService, SearchFilters } from './elasticsearch-service';
+import { EventTopics, IEventPublisher } from './events/event-service';
 import { ModelService } from './model-service';
 
 export class DeliveryService extends ModelService {
   elastic: ElasticsearchService;
-  constructor() {
+  eventPublisher: IEventPublisher;
+  constructor(eventPublisher: IEventPublisher) {
     super();
     this.elastic = new ElasticsearchService();
+    this.eventPublisher = eventPublisher;
   }
 
   async createDelivery(
@@ -43,18 +51,26 @@ export class DeliveryService extends ModelService {
       if (order) await order.addDelivery(delivery);
       if (delivery) {
         // create deliveryDetails.
-        const deliveryDetails = await delivery.createDeliveryDetails(deliveryData?.deliveryDetails);
+        const deliveryDetails = await delivery.createDeliveryDetails(
+          deliveryData?.deliveryDetails
+        );
 
         //create attempt.
         let attempt;
         if (deliveryData?.deliveryAttempts) {
-          attempt = await delivery.createDeliveryAttempt(deliveryData.deliveryAttempts[0]);
+          attempt = await delivery.createDeliveryAttempt(
+            deliveryData.deliveryAttempts[0]
+          );
         } else {
-          attempt = await delivery.createDeliveryAttempt({ status: delivery.status });
+          attempt = await delivery.createDeliveryAttempt({
+            status: delivery.status
+          });
         }
 
         //create initial state change.
-        const stateChange = await attempt.createStateChange({ state: delivery.status });
+        const stateChange = await attempt.createStateChange({
+          state: delivery.status
+        });
         //const stateChange = await DeliveryStateChange.create({ state: delivery.status });
         let attemptData: DeliveryAttemptData | undefined = undefined;
         if (attempt) {
@@ -74,6 +90,15 @@ export class DeliveryService extends ModelService {
     } catch (error) {
       console.error(error);
     }
+
+    // publish events
+    if (response) {
+      await this.eventPublisher.publish({
+        topic: EventTopics.DELIVERY_CHANGE,
+        payload: response
+      });
+    }
+
     return response;
   }
 
@@ -92,10 +117,11 @@ export class DeliveryService extends ModelService {
           elasticDelivery.order_id.toString()
         );
         // get the delivery details
-        const deliveryDetails = await this.elastic.getDocument<DbDeliveryDetails>(
-          'data.public.delivery_details',
-          deliveryId.toString()
-        );
+        const deliveryDetails =
+          await this.elastic.getDocument<DbDeliveryDetails>(
+            'data.public.delivery_details',
+            deliveryId.toString()
+          );
         response = {
           id: elasticDelivery.id,
           orderId: elasticDelivery.order_id,
@@ -163,7 +189,10 @@ export class DeliveryService extends ModelService {
       });
       if (delivery) {
         const order = await Order.findByPk(delivery.orderId);
-        response = { ...delivery.toJSON(), order: order?.toJSON() } as DeliveryData;
+        response = {
+          ...delivery.toJSON(),
+          order: order?.toJSON()
+        } as DeliveryData;
       }
     } catch (error) {
       console.error(error);
@@ -175,17 +204,24 @@ export class DeliveryService extends ModelService {
     deliveryId: number,
     status: DeliveryStatus
   ): Promise<DeliveryAttemptData | undefined> {
-    let response: any;
+    let response: DeliveryAttemptData | undefined = undefined;
     try {
       const delivery = await Delivery.findByPk(deliveryId);
       if (delivery) {
         const newAttempt = await delivery.createDeliveryAttempt({
           status
         });
-        response = newAttempt.toJSON();
+        response = { ...newAttempt.toJSON() } as DeliveryAttemptData;
       }
     } catch (error) {
       console.error(error);
+    }
+    // publish events
+    if (response) {
+      await this.eventPublisher.publish({
+        topic: EventTopics.DELIVERY_ATTEMPT_CHANGE,
+        payload: response
+      });
     }
     return response;
   }
@@ -211,6 +247,19 @@ export class DeliveryService extends ModelService {
         }
         // update the delivery status.
         await delivery.update({ status });
+        // publish events
+        await this.eventPublisher.publish({
+          topic: EventTopics.DELIVERY_STATE_CHANGE,
+          payload: { ...stateChange } as DeliveryStateChangeData
+        });
+        await this.eventPublisher.publish({
+          topic: EventTopics.DELIVERY_ATTEMPT_CHANGE,
+          payload: { ...deliveryAttempt } as DeliveryAttemptData
+        });
+        await this.eventPublisher.publish({
+          topic: EventTopics.DELIVERY_CHANGE,
+          payload: { ...delivery } as DeliveryData
+        });
         response = stateChange.toJSON();
       }
     } catch (error) {
@@ -235,10 +284,10 @@ export class DeliveryService extends ModelService {
         limit: 10,
         offset: 0
       };
-      let searchResults = await this.elastic.search<DbDelivery, keyof DbDelivery>(
-        'data.public.deliveries',
-        {}
-      );
+      let searchResults = await this.elastic.search<
+        DbDelivery,
+        keyof DbDelivery
+      >('data.public.deliveries', {});
       if (searchResults) {
         response = searchResults.map((result) => {
           return {

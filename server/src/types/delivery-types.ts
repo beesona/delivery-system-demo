@@ -1,35 +1,35 @@
 enum DeliveryStatus {
-  draft = 'draft',
-  readyForDispatch = 'readyForDispatch',
-  dispatching = 'dispatching',
-  scheduled = 'scheduled',
-  assigned = 'assigned',
-  acceptedByLp = 'acceptedByLp',
-  canceledByLp = 'canceledByLp',
-  driverAssigned = 'driverAssigned',
-  enRouteToPickup = 'enRouteToPickup',
-  arrivedForPickup = 'arrivedForPickup',
-  enRouteToDelivery = 'enRouteToDelivery',
-  arrivedForDelivery = 'arrivedForDelivery',
-  delivered = 'delivered',
-  canceledByShipper = 'canceledByShipper'
+  draft = "draft",
+  readyForDispatch = "readyForDispatch",
+  dispatching = "dispatching",
+  scheduled = "scheduled",
+  assigned = "assigned",
+  acceptedByLp = "acceptedByLp",
+  canceledByLp = "canceledByLp",
+  driverAssigned = "driverAssigned",
+  enRouteToPickup = "enRouteToPickup",
+  arrivedForPickup = "arrivedForPickup",
+  enRouteToDelivery = "enRouteToDelivery",
+  arrivedForDelivery = "arrivedForDelivery",
+  delivered = "delivered",
+  canceledByShipper = "canceledByShipper"
 }
 
-interface OrderData {
+interface IData {
   id?: number;
-  organizationId: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-interface DeliveryData {
-  id?: number;
+interface OrderData extends IData {
+  organizationId: number;
+}
+
+interface DeliveryData extends IData {
   deliveryType: string;
   notes: string;
   status: DeliveryStatus;
   dispatchAt: Date;
-  createdAt?: Date;
-  updatedAt?: Date;
   mileage: number;
   orderId?: number;
   order?: OrderData;
@@ -37,35 +37,25 @@ interface DeliveryData {
   deliveryDetails?: DeliveryDetailsData;
 }
 
-interface DeliveryAttemptData {
-  id?: number;
+interface DeliveryAttemptData extends IData {
   status: DeliveryStatus;
   deliveryStateChanges?: DeliveryStateChangeData[];
-  createdAt: Date;
-  updatedAt: Date;
 }
 
-interface DeliveryStateChangeData {
-  id?: number;
+interface DeliveryStateChangeData extends IData {
   state: DeliveryStatus;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
-interface OrderItemData {
-  id?: number;
+interface OrderItemData extends IData {
   description: string;
   lengthIn: number;
   widthIn: number;
   heightIn: number;
   weightLbs: number;
   quantity: number;
-  createdAt?: Date;
-  updatedAt?: Date;
 }
 
-interface DeliveryDetailsData {
-  id?: number;
+interface DeliveryDetailsData extends IData {
   deliveryId?: number;
   fromInstructions?: string;
   fromContactName: string;
@@ -83,11 +73,10 @@ interface DeliveryDetailsData {
   toZip: string;
   toCountry: string;
   toPhoneNumber: string;
-  createdAt?: Date;
-  updatedAt?: Date;
 }
 
 export {
+  IData,
   DeliveryStatus,
   OrderData,
   DeliveryData,
